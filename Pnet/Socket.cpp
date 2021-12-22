@@ -1,5 +1,9 @@
-#include "Socket.h"
+/*
+auto Adabogo Emmnauel
 
+*/
+
+#include "Socket.h"
 #include <assert.h>
 #include <iostream>
 #include <Windows.h>
@@ -61,14 +65,19 @@ namespace Pnet
 		return PResult::P_Success;
 	}
 	
+
 	SocketHandle Socket::GetHandle()
 	{
 		return handle;
 	}
+
+
 	void Socket::SetHandle(const SocketHandle hdl)
 	{
 		handle = hdl;
 	}
+
+
 	void Socket::AppendBufffer(const char buf)
 	{
 		sockbuf.append(&buf);
@@ -79,38 +88,51 @@ namespace Pnet
 		sockbuf.clear();
 	}
 
+
 	void Socket::SetBuffer(std::string buf)
 	{
 		sockbuf = buf;
 	}
+
+
 	std::string Socket::GetSenderName()
 	{
 		return senderName;
 	}
-	void Socket::GetHostname()
-	{
-		wchar_t* hostStr;
-		ULONG hostStr_len;
-		//GetHostNameW(hostStr, hostStr_len);
 
-				
+
+	std::string Socket::GetHostname() //this functin return the name of the running host
+	{
+		/*
+		wchar_t* hostStr=new wchar_t[hostStr_len];
+		GetHostNameW(hostStr, hostStr_len);
+		*/
+		int len = 32;
+		char* hoststr=new char[len];
+		gethostname(hoststr, len);
+		std::string hostName;
+		std::cout << hostName;
+		return hostName.assign(hoststr);
+			
 	}
+
+
 	PVersion Socket::GetIPVersion()
 	{
 		return ipversion;
 	}
+
 
 	std::string Socket::GetBufData()
 	{
 		return sockbuf;
 	}
 
+
 	size_t Socket::GetSockBufLen()
 	{
 		return sockbuf.size();
 	}
-
-
 
 	PResult Socket::Bind(IPEndPoint endpoint)
 	{
@@ -123,9 +145,9 @@ namespace Pnet
 			std::cerr << "failed to bind socket" << std::endl;
 			return PResult::P_NotYetImplemented;
 		}
-
 		return PResult::P_Success;
 	}
+
 
 	PResult Socket::Listen(IPEndPoint endpoint, int backlog)
 	{
@@ -135,14 +157,9 @@ namespace Pnet
 			return PResult::P_NotYetImplemented;
 		}
 
-		// Change the socket mode on the listening socket from blocking to
-
-		// non-block so the application will not block waiting for requests
-
 		NonBlock = 1;
 
-		if (ioctlsocket(handle, FIONBIO, &NonBlock) == SOCKET_ERROR)
-
+		if (ioctlsocket(handle, FIONBIO, &NonBlock) == SOCKET_ERROR) // Change the socket mode on the listening socket from blocking to non-block so the application will not block waiting for requests
 		{
 
 			printf("ioctlsocket() failed with error %d\n", WSAGetLastError());
@@ -163,6 +180,7 @@ namespace Pnet
 
 		return PResult::P_Success;
 	}
+
 
 	PResult Socket::SetIPEndPoint(Socket &outhandle)
 	{
@@ -187,6 +205,7 @@ namespace Pnet
 		
 	}
 
+
 	PResult Socket::Connect(IPEndPoint endpoint)
 	{
 		
@@ -210,9 +229,10 @@ namespace Pnet
 
 	}
 
-	PResult Socket::Send(char * buffer, int buf_size, int& byte_send)
+
+	PResult Socket::Send(char * buffer, size_t buf_size, size_t& byte_send)
 	{
-		byte_send= send(handle,(const char *)buffer,buf_size,NULL);
+		byte_send= send(handle,(const char *)buffer,(int)buf_size,NULL);
 		if (byte_send == 0)
 		{
 			std::cout << "connection was closed" << std::endl;
@@ -228,10 +248,11 @@ namespace Pnet
 		return PResult::P_Success;
 	}
 
-	PResult Socket::Recv(char * buffer, int buf_size, int& byte_rcved)
+
+	PResult Socket::Recv(char * buffer, size_t buf_size, size_t& byte_rcved)
 	{
 	
-		byte_rcved = recv(handle, buffer, buf_size, 0);
+		byte_rcved = recv(handle, buffer, (int)buf_size, 0);
 		
 		if (byte_rcved == 0)
 		{
@@ -245,19 +266,16 @@ namespace Pnet
 		}
 		return PResult::P_Success;
 	}
-
 	
 
-	
-
-	PResult Socket::Sendall(void* data, int datalen)
+	PResult Socket::Sendall(void* data, size_t datalen)
 	{
-		int totalByteSend= 0;
+		size_t totalByteSend= 0;
 	
 		while (totalByteSend < datalen)
 		{
-			int bytesRemaining = datalen - totalByteSend;
-			int byte_send = 0;
+			size_t bytesRemaining = datalen - totalByteSend;
+			size_t byte_send = 0;
 			char* bufsetof = (char*)data + totalByteSend;
 
 			PResult result = Send(bufsetof, datalen, byte_send);
@@ -273,48 +291,62 @@ namespace Pnet
 		return PResult::P_Success;
 	}
 
-	PResult Socket::Recvall(void* destination, int destination_len)
+
+	PResult Socket::Recvall(void* destination, size_t destination_len)
 	{
-		int totalByteReceived = 0;
+		size_t totalByteReceived = 0;
 		char* bufferoffset = new char[destination_len];
 		while (totalByteReceived < destination_len)
 		{
-			int bytesRemaining = destination_len - totalByteReceived;
-			int bytesReceived = 0;
+			size_t bytesRemaining = destination_len - totalByteReceived;
+			size_t bytesReceived = 0;
 			 bufferoffset= ((char*)destination + totalByteReceived);
 		
 			PResult result = Recv(bufferoffset, bytesRemaining, bytesReceived);
 			if (result == PResult::P_NotYetImplemented)
-			{
-				
+			{				
 				return PResult::P_NotYetImplemented;
 			}
 			totalByteReceived += bytesReceived;
 
 		}
-		
-
 		return PResult::P_Success;
 	}
+
 
 	PResult Socket::SWSASend()
 	{
 		if (sockbuf.size() > 0)
 		{
-			size_t bufferlen = htonl(sockbuf.size());
-				PResult result_SIZE = Sendall(&bufferlen, sizeof(ULONG));
+			PResult result_SIZE, result;
+			ULONG bufferlen = {};
+			std::string hostName = GetHostname();
+			
+			bufferlen =(size_t) htonl((u_long)hostName.size());
+			result_SIZE = Sendall(&bufferlen, sizeof(ULONG)); //send hostName length
+			result = Sendall((char*)hostName.c_str(), hostName.size());//send hostName
 
-		
-			PResult result = Sendall((char *)sockbuf.c_str(), sockbuf.size());
-			if (result == PResult::P_NotYetImplemented || result_SIZE == PResult::P_NotYetImplemented)
+			if (result == PResult::P_Success || result_SIZE == PResult::P_Success)
 			{
-				printf("send failed\n");
-				return PResult::P_NotYetImplemented;
+					size_t bufferlen =(size_t) htonl((u_long)sockbuf.size());
+					result_SIZE = Sendall(&bufferlen, sizeof(size_t));
+					result = Sendall((char*)sockbuf.c_str(), sockbuf.size());
+
+					if (result == PResult::P_Success || result_SIZE == PResult::P_Success)
+					{
+						printf("send\n");
+						return PResult::P_Success;
+					}
+					else
+					{
+						printf("failed to send data\n");
+						return PResult::P_NotYetImplemented;
+					}
 			}
 			else
 			{
-				printf("send was successful\n");
-				return PResult::P_Success;
+				printf("failed to send hostName\n");
+				return PResult::P_NotYetImplemented;
 			}
 		}
 		else
@@ -324,41 +356,66 @@ namespace Pnet
 		}
 	}
 
-	PResult Socket::SWSARecv()
+
+PResult Socket::SWSARecv()
 	{
-		size_t bufferlen = {};
-		
 		sockbuf.clear();
+		senderName.clear();
+		size_t senderNameBuf_len, databufflen = {};
 
-		PResult result_SIZE = Recvall(&bufferlen, sizeof(ULONG));
-		bufferlen = ntohl(bufferlen);
-		
-		char* buffer = new char[bufferlen + 1];
-		
-		PResult result = Recvall(buffer, bufferlen);
-		
-		
-		for (size_t i = 0;i < bufferlen ;i++)
-		{
-			sockbuf.insert(sockbuf.end(),buffer[i]);
+		PResult result_SIZE = Recvall(&senderNameBuf_len, sizeof(ULONG));
+		senderNameBuf_len =(size_t)ntohl((u_long)senderNameBuf_len);
+
+		char* senderNamebuffer = new char[senderNameBuf_len + 1];
+		PResult result = Recvall(senderNamebuffer, senderNameBuf_len);
+
+
+		if (result == PResult::P_Success || result_SIZE == PResult::P_Success)
+		{		
+			result_SIZE = Recvall(&databufflen, sizeof(size_t));
+			databufflen =(size_t) ntohl((u_long)databufflen);
+
+			char* databuffer = new char[databufflen + 1];
+			result = Recvall(databuffer,databufflen);
+
+			 if (result == PResult::P_Success || result_SIZE == PResult::P_Success)
+			 {
+				 if(senderNameBuf_len>databufflen)
+					 for (size_t i = 0; i < senderNameBuf_len; i++)
+					 {
+						 if (i < databufflen)
+								 sockbuf.insert(sockbuf.end(), databuffer[i]);
+
+						 senderName.insert(senderName.end(), senderNamebuffer[i]);
+					 }
+				 else
+					 for (size_t i = 0; i < databufflen; i++)
+					 {
+						 if (i < senderNameBuf_len)
+								 senderName.insert(senderName.end(), senderNamebuffer[i]);
+
+						 sockbuf.insert(sockbuf.end(), databuffer[i]);
+					 }
+				 delete[] databuffer;
+				 delete[] senderNamebuffer;
+				 //printf("recv was successful \n");
+				 return PResult::P_Success;
+				 
+			 }
+			 else
+			 {
+				 printf("fialed to receive data\n");
+				 return PResult::P_NotYetImplemented;
+			 }
 		}
-
-		 //sockbuf.assign( buffer);
-		delete[] buffer;
-		   
-		if (result == PResult::P_NotYetImplemented || result_SIZE == PResult::P_NotYetImplemented)
-			{
-			
-				printf("recv failed\n");
-				return PResult::P_NotYetImplemented;
-			}
-		
 		else
 		{
-			printf("recv was successful \n");
-			return PResult::P_Success;
+			printf("fialed to receive SenderName\n");
+			return PResult::P_NotYetImplemented;
 		}
+
 	}
+
 
 	PResult Socket::Send(Packet* packet)
 	{
@@ -381,8 +438,8 @@ namespace Pnet
 		}
 
 			return PResult::P_Success;
-		
 	}
+
 
 	PResult Socket::Recv(Packet* packet)
 	{
@@ -408,6 +465,7 @@ namespace Pnet
 		
 		return PResult::P_Success;
 	}
+
 
 	PResult Socket::SetSocketOption(SocketOption option, BOOL value)
 	{

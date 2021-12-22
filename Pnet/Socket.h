@@ -26,7 +26,7 @@ namespace Pnet
 		void Clearbuffer();
 		void SetBuffer(std::string buf);
 		std::string GetSenderName();
-		void GetHostname();
+		std::string GetHostname();
 		PVersion GetIPVersion();
 		std::string GetBufData();
 		size_t GetSockBufLen();
@@ -35,10 +35,10 @@ namespace Pnet
 		PResult Listen(IPEndPoint endpoint, int backlog);
 		PResult Connect(IPEndPoint endpoint);
 		PResult SetIPEndPoint(Socket &outhandle);
-		PResult Send(char *buffer, int buf_size, int& byte_send);
-		PResult Recv(char *buffer,int buf_size,int& byte_rcved);
-		PResult Sendall(void* data, int datalen);
-		PResult Recvall(void * data, int data_len);
+		PResult Send(char *buffer, size_t buf_size, size_t& byte_send);
+		PResult Recv(char *buffer,size_t buf_size, size_t& byte_rcved);
+		PResult Sendall(void* data, size_t datalen);
+		PResult Recvall(void * data, size_t data_len);
 		PResult SWSASend();
 		PResult SWSARecv();
 		
@@ -58,7 +58,7 @@ namespace Pnet
 		DWORD TotalByte = 0;
 		//char* buffer = new char;
 		std::string sockbuf;
-		std::string hostName;
+		//std::string hostName;
 		std::string senderName;
 		OVERLAPPED* m_poll;
 		DWORD flag = 0;

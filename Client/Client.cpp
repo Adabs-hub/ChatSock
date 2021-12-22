@@ -29,9 +29,8 @@ int main()
 				std::cout << "socket connected successfully" << std::endl;
 
 				DWORD NonBlock = 1;
-				//Unbloking socket hanle
+				//Unbloking socket handle
 				if (ioctlsocket(socket.GetHandle(), FIONBIO, &NonBlock) == SOCKET_ERROR)
-
 				{
 
 					printf("ioctlsocket(FIONBIO) failed with error %d\n", WSAGetLastError());
@@ -40,10 +39,8 @@ int main()
 					return 0;
 
 				}
-				else{
-				
-					std::cout << "ioctlsocket(FIONBIO) is ok on sock " << (int)socket.GetHandle()<<std::endl;
-					}
+				else
+				{	std::cout << "ioctlsocket(FIONBIO) is ok on sock " << (int)socket.GetHandle()<<std::endl;}
 
 				//Packet packet;
 				bool flag = false;
@@ -59,25 +56,17 @@ int main()
 				std::istream &si = std::cin;
 				std::string filename="data";
 
-				//std::cout << "input filename__";
-				//std::cin >> filename;
 
 				TextStream textfile;
-				textfile.LoadUsers(filename);
+				textfile.LoadUsers(filename); //Load previous charts from file
 
 				
 				while (true)
 				{
-
-
 					FD_ZERO(&ReadSet); // Prepare the Read and Write socket sets for network I/O notification
-
 					FD_ZERO(&WriteSet);	// Always look for connection attempts 
 
-					
-
 					FD_SET(socket.GetHandle(), &ReadSet);	 // Set Read and Write notification for each socket based on the current state the buffer.  If there is data remaining in the
-
 					FD_SET(socket.GetHandle(), &WriteSet);	// buffer then set the Write set otherwise the Read set
 
 				
@@ -87,55 +76,33 @@ int main()
 					
 					if ((select(1, &ReadSet, &WriteSet, NULL, &time) == SOCKET_ERROR))
 					{
-
 						printf("select() returned with error %d\n", WSAGetLastError());
-
 						return 1;
-
 					}
-					
-					// Check each socket for Read and Write notification until the number of sockets in Total is satisfied
-// If the ReadSet is marked for this socket then this means data
-
+						// Check each socket for Read and Write events until the number of sockets in Total is satisfied
+						// If the ReadSet is marked for this socket then this means data
 						// is available to be read on the socket
 
 					if (FD_ISSET(socket.GetHandle(), &ReadSet))
 					{
-
-
 						if (socket.SWSARecv() == PResult::P_Success)
-						{
-							
-							std::cout <<"\t\t\t\t\t("<< socket.GetSenderName()<<")"<< std::endl;
-							textfile.WriteToText(filename,"~/`/~3#"+ socket.GetSenderName()+")\n");
+						{		
+							std::cout <<"\t\t\t\t\t("<< socket.GetSenderName()<<")"<< std::endl; //display sender's name on chat
+							textfile.WriteToText(filename,"~/`/~3#("+ socket.GetSenderName()+")\n"); //save sender's name in textfile
 
 							std::cout <<"\t\t\t\t\t  "<< socket.GetBufData() <<"\n\n"<< std::endl;
 							textfile.WriteToText(filename,"~/`/~3# " + socket.GetBufData()+"\n");
 
 						}
 						else
-						{
-							
-							break;
-						}
+							break; 
 
 					}
 
-					
-
-
-
-
-
 					// If the WriteSet is marked on this socket then this means the internal
-
 					// data buffers are available for more data
-
 					if (FD_ISSET(socket.GetHandle(), &WriteSet))
 					{
-						
-						//std::cout<<"that is loaded buffer" << socket.GetBufData().buf << std::endl;
-						
 						
 						if (flagthread)
 						{
@@ -146,21 +113,18 @@ int main()
 						{		 
 							  th1.join();
 							  flagthread = true;
-							//  socket.SetBuffer(buf);
-							 
-							  //std::cout << "sockbuf=" << socket.GetBufData() << std::endl;
-							if (socket.GetSockBufLen() > 0)
-							{
-								textfile.WriteToText(filename,socket.GetBufData()+"\n");
-
-								if (socket.SWSASend() != PResult::P_Success)
+								if (socket.GetSockBufLen() > 0)
 								{
-									printf("client was unable to send text\n");
+									textfile.WriteToText(filename,socket.GetBufData()+"\n");
+
+									if (socket.SWSASend() != PResult::P_Success)
+									{
+										printf("client was unable to send text\n");
+										socket.Clearbuffer();
+									}
+									flag = false;
 									socket.Clearbuffer();
 								}
-								flag = false;
-								socket.Clearbuffer();
-							}
 						}
 							
 					}
@@ -169,30 +133,24 @@ int main()
 					FD_ZERO(&ReadSet);
 					FD_ZERO(&WriteSet);
 
-
 					Sleep(200);
-					
-					
-
 				}
 			}
 			else
-                socket.close();
+                 socket.close();
         }
-            else
-            {
-                int err = WSAGetLastError();
-                std::cout << "failed to connect socket" << std::endl;
-            }
+        else
+         {
+            int err = WSAGetLastError();
+            std::cout << "failed to connect socket" << std::endl;
+         }
             
     }
-        else
-        {
-            std::cerr << "failed to create socket" << std::endl;
-        }
+     else
+      {
+          std::cerr << "failed to create socket" << std::endl;
+      }
     
-
-
 
     Network::Shutdown();
     system("pause");
@@ -205,5 +163,4 @@ int main()
 		std::getline(si, str);
 		socket.SetBuffer(str);
 		flag = true;
-	
 }
