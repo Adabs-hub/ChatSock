@@ -16,9 +16,6 @@ void Packet::Append(const void * data, uint32_t data_size)
 
 
 
-
-
-
 Packet& Packet::operator<<(uint32_t data)
 {
 	data = htonl(data);

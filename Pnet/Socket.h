@@ -17,7 +17,7 @@ namespace Pnet
 	public:
 		Socket(PVersion ipversion = PVersion::IPv4, SocketHandle handle = INVALID_SOCKET);
 						
-		PResult create();
+		PResult create(int sock_type, bool broadcast );
 		SocketHandle GetHandle();
 		PResult close();
 		void SetHandle(const SocketHandle  hdl);
@@ -33,7 +33,11 @@ namespace Pnet
 		//char * GetBufStr();
 		PResult Bind(IPEndPoint endpoint);
 		PResult Listen(IPEndPoint endpoint, int backlog);
+		PResult Listen(sockaddr* addr);
+		PResult Listener(IPEndPoint endpoint, sockaddr_in* their_addr);
+		PResult talker(IPEndPoint endpoint);
 		PResult Connect(IPEndPoint endpoint);
+		PResult Connect(sockaddr_in* addr);
 		PResult SetIPEndPoint(Socket &outhandle);
 		PResult Send(char *buffer, size_t buf_size, size_t& byte_send);
 		PResult Recv(char *buffer,size_t buf_size, size_t& byte_rcved);
@@ -62,6 +66,7 @@ namespace Pnet
 		std::string senderName;
 		OVERLAPPED* m_poll;
 		DWORD flag = 0;
+		sockaddr_in myaddr = {};
 
 		
 	};

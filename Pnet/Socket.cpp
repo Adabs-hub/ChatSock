@@ -1,5 +1,5 @@
 /*
-auto Adabogo Emmnauel
+autho Adabogo Emmnauel
 
 */
 
@@ -20,26 +20,42 @@ namespace Pnet
 
 
 
-	PResult Socket::create()
+	PResult Socket::create(int sock_type, bool broadcast)
 	{
 		assert(ipversion == PVersion::IPv4);
-		if (handle != INVALID_SOCKET)
-		{
-			return PResult::P_NotYetImplemented;
-		}
 
-		handle = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		if (handle == INVALID_SOCKET)
+		if (sock_type == SOCK_STREAM)
 		{
-			int error = WSAGetLastError();
+			handle = socket(AF_INET, sock_type, 0);
+			if (handle == INVALID_SOCKET)
+			{
+				std::cout << "invalid handle" << std::endl;
+				return PResult::P_NotYetImplemented;
 
-			return PResult::P_NotYetImplemented;
+			}
+			if (SetSocketOption(SocketOption::TCP_NoDelay, TRUE) != P_Success)
+			{
+				return PResult::P_NotYetImplemented;
+			}
 		}
-		if (SetSocketOption(SocketOption::TCP_NoDelay, TRUE) != P_Success)
+		else
 		{
-			return PResult::P_NotYetImplemented;
-		}
+			handle = socket(AF_INET, sock_type, IPPROTO_UDP);
+			if (handle == INVALID_SOCKET)
+			{
+				std::cout << "invalid handle" << std::endl;
+				return PResult::P_NotYetImplemented;
 
+			}
+		}
+	
+		if (broadcast)
+		{
+			if (SetSocketOption(SocketOption::BROADCAST, TRUE) != P_Success)
+			{
+				return PResult::P_NotYetImplemented;
+			}
+		}
 
 
 		return PResult::P_Success;
@@ -117,6 +133,7 @@ namespace Pnet
 	}
 
 
+
 	PVersion Socket::GetIPVersion()
 	{
 		return ipversion;
@@ -134,11 +151,13 @@ namespace Pnet
 		return sockbuf.size();
 	}
 
+
 	PResult Socket::Bind(IPEndPoint endpoint)
 	{
-		sockaddr_in addr = endpoint.GetAddrInfoIPv4();
+		myaddr = endpoint.GetAddrInfoIPv4();
+		endpoint.Print();
 		
-		int result = bind(handle, (sockaddr*)(&addr), sizeof(sockaddr_in));
+		int result = bind(handle, (struct sockaddr*)&myaddr, sizeof(struct sockaddr_in));
 		if (result != 0)
 		{
 			int err = WSAGetLastError();
@@ -149,11 +168,12 @@ namespace Pnet
 	}
 
 
+
 	PResult Socket::Listen(IPEndPoint endpoint, int backlog)
 	{
 		if (Bind(endpoint) == PResult::P_NotYetImplemented)
 		{
-			std::cout << "failed to bind socket"<<std::endl;
+			std::cout << "failed to bind socket" << std::endl;
 			return PResult::P_NotYetImplemented;
 		}
 
@@ -168,16 +188,57 @@ namespace Pnet
 
 		}
 
+		printf("ioctlsocket() is OK!\n");
 
-			printf("ioctlsocket() is OK!\n");
-
-		int result=listen(handle, backlog);
+		int result = listen(handle, backlog);
 		if (result != 0)
 		{
 			std::cout << "socket failed to listen" << std::endl;
 			return PResult::P_NotYetImplemented;
 		}
 
+		return PResult::P_Success;
+	}
+
+
+
+	PResult Socket::Listener(IPEndPoint endpoint, sockaddr_in *their_addr)
+	{
+		if (Bind(endpoint) == PResult::P_NotYetImplemented)	  //bind ip and handle to port
+		{
+			std::cout << "failed to bind socket" << std::endl;
+			return PResult::P_NotYetImplemented;
+		}
+		int max_bufLen = 20;
+		int addr_len = sizeof(struct sockaddr_in);
+		char* buffer = new char[max_bufLen];
+	
+		if ((ByteRecv = recvfrom(handle, buffer, max_bufLen-1 , 0,
+			reinterpret_cast<SOCKADDR*> (their_addr),&addr_len))==-1)
+		{
+			printf("failed to receive udp info\n");
+			return PResult::P_NotYetImplemented;
+		}
+		std::string data(buffer);
+		std::cout << "DATAT FROM server: " << data << std::endl;
+
+		return PResult::P_Success;
+	}
+
+
+
+	PResult Socket::talker(IPEndPoint endpoint)
+	{
+		myaddr = endpoint.GetAddrInfoIPv4();
+		ByteSend = 0;
+		std::string buffer = "hello who's there!!";
+		
+		if ((ByteSend = sendto(handle, buffer.c_str(), buffer.size(), 0,
+			reinterpret_cast< SOCKADDR*>(&myaddr), sizeof(sockaddr_in))) == -1)
+		{
+			printf("failed to send udp info\n");
+			return PResult::P_NotYetImplemented;
+		}
 		return PResult::P_Success;
 	}
 
@@ -208,9 +269,7 @@ namespace Pnet
 
 	PResult Socket::Connect(IPEndPoint endpoint)
 	{
-		
-		sockaddr_in addr4 = endpoint.GetAddrInfoIPv4();
-		
+		sockaddr_in addr4 = endpoint.GetAddrInfoIPv4();	
 		int result = connect(handle, (sockaddr*)&addr4, sizeof(sockaddr_in));
 		if (result == 0)
 		{
@@ -228,6 +287,30 @@ namespace Pnet
 		}
 
 	}
+
+
+	PResult Socket::Connect(sockaddr_in *addr)
+	{
+		IPEndPoint endpoint = IPEndPoint((sockaddr*)addr);
+		int result = connect(handle, (sockaddr*)addr, sizeof(sockaddr_in));
+
+		if (result == 0)
+		{
+			std::cout << "socket connected successfully to sock=" << (int)handle << std::endl;
+			endpoint.Print();
+			return PResult::P_Success;
+		}
+		else
+		{
+			int err = WSAGetLastError();
+			std::cout << "failed connect to port " << endpoint.GetPort() << std::endl;
+			endpoint.Print();
+			return PResult::P_NotYetImplemented;
+
+		}
+
+	}
+
 
 
 	PResult Socket::Send(char * buffer, size_t buf_size, size_t& byte_send)
@@ -469,25 +552,29 @@ PResult Socket::SWSARecv()
 
 	PResult Socket::SetSocketOption(SocketOption option, BOOL value)
 	{
-		int result;
-		//int iresult;
-		//int jresult;
+
 		switch (option)
 		{
 		case SocketOption::TCP_NoDelay:
-			
-			result = setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, ( char*)&value, sizeof(value));
-			// iresult = setsockopt(handle, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value));
 			// jresult = setsockopt(handle, SOL_SOCKET, SO_OOBINLINE , (char*)&value, sizeof(value));
+
+			if (setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (char*)&value, sizeof(value)) != 0)
+			{
+				int erro = WSAGetLastError();
+				return PResult::P_NotYetImplemented;
+			}
+
+			break;
+		case SocketOption::BROADCAST:
+
+			if (setsockopt(handle, SOL_SOCKET, SO_BROADCAST, (char*)&value, sizeof(value)) != 0)
+			{
+				int erro = WSAGetLastError();
+				return PResult::P_NotYetImplemented;
+			}
 			break;
 		
 		default:
-			return PResult::P_NotYetImplemented;
-		}
-
-		if (result != 0 )
-		{
-			int erro = WSAGetLastError();
 			return PResult::P_NotYetImplemented;
 		}
 

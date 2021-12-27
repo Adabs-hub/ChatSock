@@ -5,6 +5,7 @@ namespace Pnet
 	enum SocketOption
 	{
 		TCP_NoDelay,
+		BROADCAST,
 
 	};
 }

@@ -2,21 +2,23 @@
 // Server code
 #include <Pnet/Pnet.h>
 #include <iostream>
+#define BROADCAST_PORT 9956
+#define PORT 9034
 
 using namespace Pnet;
 
 int main()
-{
+{					
     if (Network::Initialize())
-    {
+    {				
         std::cerr << "winsock api intialized succesfully" << std::endl;
 
         Socket ListeningSocket;
-		if (ListeningSocket.create() == PResult::P_Success)
+		if (ListeningSocket.create(SOCK_STREAM, false) == PResult::P_Success)
 		{
 			std::cout << "socket created successfully" << std::endl;
 
-			if (ListeningSocket.Listen(IPEndPoint("127.0.0.1", 9034), 20) == PResult::P_Success)
+			if (ListeningSocket.Listen(IPEndPoint("0.0.0.0", PORT ), 20) == PResult::P_Success)
 			{
 				std::cout << "socket successfully bind and listen to port 9043" << std::endl;
 				Socket connectedsocket;
@@ -29,12 +31,27 @@ int main()
 				DWORD i;
 				DWORD NonBlock=0;
 				Sock_Info_Array SocketArray;
-
 				PResult result = PResult::P_Success;
+				std::cout << "WAITING FOR CLIENTS TO CONNECT..." << std::endl;
+
+
 				while (true)
 				{
+					//BROAD CAST SERVER IP FOR AVAILABLE CLIENT TO CONNECT ON THE NETWORK
+					Socket udp;
+					if (udp.create(SOCK_DGRAM, true) == PResult::P_Success)
+					{
+						if (udp.talker(IPEndPoint("127.0.0.1", BROADCAST_PORT)) != PResult::P_Success)
+						{
+							printf("failed to send udp");
+						}
+						udp.close();
+						Sleep(1000);
+					}
+					else
+						printf("failed to send udp");
 					/*8888888888888888888888888888888888888888888888888888888888888888888888888888888*/
-
+				
 						// Prepare the Read and Write socket sets for network I/O notification
 
 					FD_ZERO(&WriteSet);   //initial read and write state
@@ -110,7 +127,7 @@ int main()
 						FD_SET(SocketArray.SocketArray[i].GetHandle(), &ReadSet);
 
 						timeout.tv_sec = 0;
-						timeout.tv_usec = 1000;
+						timeout.tv_usec = 200;		 // WAIT FOR INCOMING DATA
 
 						// If the ReadSet is marked for this socket then this means data is available to be read on the socket
 						 
@@ -169,10 +186,10 @@ int main()
 								}
 							}
 							else 
-								Sleep(5000); 
+								Sleep(500);
 						}
 					}
-
+					
 				}
 			}
             else
@@ -185,8 +202,8 @@ int main()
         else
             std::cerr << "failed to create socket" << std::endl;
         
+					
     }
-
     Network::Shutdown();
     return 0;
 }
