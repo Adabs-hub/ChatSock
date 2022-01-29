@@ -28,12 +28,12 @@ namespace Pnet
 		std::string GetSenderName();
 		std::string GetHostname();
 		PVersion GetIPVersion();
-		std::string GetBufData();
+		std::string GetSocketData();
 		size_t GetSockBufLen();
 		//char * GetBufStr();
 		PResult Bind(IPEndPoint endpoint);
 		PResult Listen(IPEndPoint endpoint, int backlog);
-		PResult Listen(sockaddr* addr);
+		//PResult Listen(sockaddr* addr);
 		PResult Listener(IPEndPoint endpoint, sockaddr_in* their_addr);
 		PResult talker(IPEndPoint endpoint);
 		PResult Connect(IPEndPoint endpoint);
@@ -41,9 +41,10 @@ namespace Pnet
 		PResult SetIPEndPoint(Socket &outhandle);
 		PResult Send(char *buffer, size_t buf_size, size_t& byte_send);
 		PResult Recv(char *buffer,size_t buf_size, size_t& byte_rcved);
+		PResult Socket::Recv(char* buffer, int buf_size, int& byte_rcved);
 		PResult Sendall(void* data, size_t datalen);
 		PResult Recvall(void * data, size_t data_len);
-		PResult SWSASend();
+		PResult SWSASend(std::string text);
 		PResult SWSARecv();
 		
 		

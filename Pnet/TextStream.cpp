@@ -3,7 +3,7 @@
 void TextStream::LoadUsers(std::string textfileName)
 {
     std::string line;
-    std::ifstream myfile(textfileName + ".bin");
+    std::ifstream myfile(textfileName );
     if (myfile.is_open())
     {
         while (getline(myfile, line))
@@ -21,7 +21,7 @@ void TextStream::LoadUsers(std::string textfileName)
         }
         myfile.close();
     }
-     else std::cout << "FAILED TO LOAD FILE";
+   //  else std::cout << "FAILED TO LOAD FILE";
 
 }
 
@@ -33,7 +33,7 @@ bool TextStream::userExit(const std::string file)
 
 void TextStream::WriteToText(const std::string textfileName, const std::string str)
 {   
-    std::ofstream myfile(textfileName+".bin",std::ios::app);
+    std::ofstream myfile(textfileName, std::ios::app );
     
     if (myfile.is_open())
     {
@@ -41,12 +41,12 @@ void TextStream::WriteToText(const std::string textfileName, const std::string s
         myfile.close();
     }
     else
-        std::cout << "unable to open file:: data.bin" << std::endl;
+        std::cout << "unable to write to text" << std::endl;
 }
 
 
 
-void TextStream::ReadText(std::string& file)
+void TextStream::ReadText(std::string file, std::string &data)
 {
     std::string line;
     std::ifstream myfile(file,std::ios::in||std::ios::binary);
@@ -54,14 +54,16 @@ void TextStream::ReadText(std::string& file)
     {
         while (getline(myfile, line))
         {
-            const char pos[3] = { line[line.size() - 3], line[line.size() - 2], line[line.size() - 1] };
-                if(pos == "<<<")
-                {
-                    std::cout << line << std::endl;
-                }
-                else std::cout << "\n\n \t\t\t\t\t" << line << "\n\n" << std::endl;
-           
+
+             const char pos[3] = { line[line.size() - 3], line[line.size() - 2], line[line.size() - 1] };
+           if (pos == "<<<")
+            {
+                std::cout << line << std::endl;
+            }
+            else std::cout << "image loaded to buffer" << std::endl;// << "\n\n \t\t\t\t\t" << line << "\n\n" << std::endl;
+            
         }
+        data = line;
         myfile.close();
     }
     else

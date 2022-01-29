@@ -11,10 +11,10 @@ namespace Pnet
         {
             int erro = WSAGetLastError();
             std::cerr << "failed to create winsock api" << std::endl;
-            return PResult::P_Success;
+            return PResult::OK;
 
         }
-        return PResult::P_NotYetImplemented;
+        return PResult::ERR;
     }
     bool Network::Shutdown()
     {
@@ -23,10 +23,10 @@ namespace Pnet
        {
            int erro = WSAGetLastError();
            std::cerr << " windows api failed to shutdown" << std::endl;
-           return PResult::P_NotYetImplemented;
+           return PResult::ERR;
        }
        //std::cout << "windows api successfully shutdown" << std::endl;
-        return PResult::P_Success;
+        return PResult::OK;
     }
     
 }

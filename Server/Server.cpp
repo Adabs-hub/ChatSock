@@ -14,11 +14,11 @@ int main()
         std::cerr << "winsock api intialized succesfully" << std::endl;
 
         Socket ListeningSocket;
-		if (ListeningSocket.create(SOCK_STREAM, false) == PResult::P_Success)
+		if (ListeningSocket.create(SOCK_STREAM, false) == PResult::OK)
 		{
 			std::cout << "socket created successfully" << std::endl;
 
-			if (ListeningSocket.Listen(IPEndPoint("0.0.0.0", PORT ), 20) == PResult::P_Success)
+			if (ListeningSocket.Listen(IPEndPoint("0.0.0.0", PORT ), 20) == PResult::OK)
 			{
 				std::cout << "socket successfully bind and listen to port 9043" << std::endl;
 				Socket connectedsocket;
@@ -31,7 +31,7 @@ int main()
 				DWORD i;
 				DWORD NonBlock=0;
 				Sock_Info_Array SocketArray;
-				PResult result = PResult::P_Success;
+				PResult result = OK;
 				std::cout << "WAITING FOR CLIENTS TO CONNECT..." << std::endl;
 
 
@@ -39,9 +39,9 @@ int main()
 				{
 					//BROAD CAST SERVER IP FOR AVAILABLE CLIENT TO CONNECT ON THE NETWORK
 					Socket udp;
-					if (udp.create(SOCK_DGRAM, true) == PResult::P_Success)
+					if (udp.create(SOCK_DGRAM, true) == PResult::OK)
 					{
-						if (udp.talker(IPEndPoint("127.0.0.1", BROADCAST_PORT)) != PResult::P_Success)
+						if (udp.talker(IPEndPoint("255.255.255.255", BROADCAST_PORT)) != PResult::OK)
 						{
 							printf("failed to send udp");
 						}
@@ -139,18 +139,18 @@ int main()
 
 						if (FD_ISSET(SocketArray.SocketArray[i].GetHandle(), &ReadSet))
 						{
-							if (SocketArray.GetTotal() > 1)
+							if (SocketArray.GetTotal() >1)
 							{
-								if (SocketArray.SocketArray[i].SWSARecv() == PResult::P_Success)
+								if (SocketArray.SocketArray[i].SWSARecv() == PResult::OK)
 								{
 
-									std::cout << SocketArray.SocketArray[i].GetBufData() << std::endl;
+									std::cout << SocketArray.SocketArray[i].GetSocketData() << std::endl;
 									for (DWORD j = 0; j < SocketArray.GetTotal(); j++)
 									{
 										if (j != i)
 										{
 											FD_SET(SocketArray.SocketArray[j].GetHandle(), &WriteSet);
-											SocketArray.SocketArray[j].SetBuffer(SocketArray.SocketArray[i].GetBufData());	  //COPY BUFFER DATA TO SOCKET
+											SocketArray.SocketArray[j].SetBuffer(SocketArray.SocketArray[i].GetSocketData());	  //COPY BUFFER DATA TO SOCKET
 
 											if (j != i)
 											{
@@ -158,7 +158,7 @@ int main()
 
 												if (FD_ISSET(SocketArray.SocketArray[j].GetHandle(), &WriteSet))
 												{
-													if ((SocketArray.SocketArray[j].SWSASend()) != PResult::P_Success)		   //SEND BUFFER
+													if ((SocketArray.SocketArray[j].SWSASend(SocketArray.SocketArray[j].GetSocketData())) != PResult::OK)		   //SEND BUFFER
 													{
 														printf("server could not forward data");
 														break;

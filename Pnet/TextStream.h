@@ -8,7 +8,7 @@ class TextStream{
 public:
 	void LoadUsers(std::string filename);
 	bool userExit(const std::string file);
-	void ReadText(std::string& file);
+	void ReadText(std::string file, std::string& data);
 	void WriteToText(const std::string textfile, const std::string str);
 
 private:

@@ -3,8 +3,8 @@ namespace Pnet
 {
 	enum PResult
 	{
-		P_Success,
-		P_NotYetImplemented
+		OK,
+		ERR
 
 	};
 }
