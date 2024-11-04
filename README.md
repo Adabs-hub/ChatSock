@@ -85,6 +85,11 @@ int main()  
 }
 ```
 
+### Server Console View
+The server console logs below demonstrate how messages are routed and broadcast to all connected clients. This provides insight into server activity and client connection management.
+
+![Server Console View](src/Screenshot 2024-10-31 230604.png)
+
 
 **Client Code**
 
@@ -115,7 +120,14 @@ while (true) {
 }
 
 ```
+
 ***Client interface***
+# Console View Example
+
+The image below shows the real-time interaction between clients in the console, where messages are displayed as they are sent and received.
+
+![Console View: Real-Time Client Interaction](src/Screenshot 2024-10-31 231114.png)
+
 
 
 
