@@ -40,8 +40,8 @@ namespace Pnet
 		PResult Connect(sockaddr_in* addr);
 		PResult SetIPEndPoint(Socket &outhandle);
 		PResult Send(char *buffer, size_t buf_size, size_t& byte_send);
-		PResult Recv(char *buffer,size_t buf_size, size_t& byte_rcved);
-		PResult Socket::Recv(char* buffer, int buf_size, int& byte_rcved);
+		//PResult Recv(char *buffer,size_t buf_size, size_t& byte_rcved);
+		PResult Recv(char* buffer, int buf_size, int& byte_rcved);
 		PResult Sendall(void* data, size_t datalen);
 		PResult Recvall(void * data, size_t data_len);
 		PResult SWSASend(std::string text);

@@ -368,8 +368,7 @@ namespace Pnet
 			int err = WSAGetLastError();
 			return PResult::ERR;
 		}
-		return PResult::OK
-			;
+		return PResult::OK;
 	}
 
 

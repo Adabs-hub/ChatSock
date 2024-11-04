@@ -36,6 +36,7 @@ int main()
 	
     if (Network::Initialize())
     {
+		/*Initialize winsocket*/
         std::cerr << "winsock api intialized succesfully" << std::endl;
 		bool server_located = false;
 		sockaddr_in available_server_addr = {};
@@ -57,6 +58,7 @@ int main()
 					udp.close();
 				}
 				std::cout << "WAITING FOR SERVER TO CONNECT ..." << std::endl;
+				/*listen to all ports*/
 				if (udp.Listener(IPEndPoint("0.0.0.0", BROADCAST_PORT), &available_server_addr) == OK)
 				{
 					//if(available_server_addr==null)
@@ -153,6 +155,8 @@ int main()
   */
 						while (true)
 						{
+							//wclear(MAIN);
+							wrefresh(MAIN);
 							
 							FD_ZERO(&ReadSet); // Prepare the Read and Write socket sets for network I/O notification
 							FD_ZERO(&WriteSet);	// Always look for connection attempts 
@@ -179,7 +183,7 @@ int main()
 								if (socket.SWSARecv() == OK)
 								{							
 									//printf("\x1b[2A ");
-								
+									
 									display_recv(MAIN, socket.GetSenderName(), socket.GetSocketData());
 									Beep(1600, 100);
 								//	waddstr(MAIN, socket.GetBufData().c_str());
@@ -326,11 +330,13 @@ int main()
 
  void setConsoleSize()
  {
-	 HWND console = GetConsoleWindow();
 	 RECT consoleRect;
+	 HWND console = GetConsoleWindow();
 	 GetWindowRect(console, &consoleRect);
-	 MoveWindow(console, consoleRect.left, consoleRect.top, 683, 700, TRUE);
-	 SetConsoleTitleA("Text_Me");
+	 MoveWindow(console, consoleRect.left, consoleRect.top, 0, 0, TRUE);
+	 SetConsoleTitleA("Stream-chat");
+
+
  }
 
 
